@@ -15,5 +15,8 @@ shotty uses the config file created by AWS cli using following command:
 `python3 shotty/shotty.py <command> <--project=project_name>`
 
 ##Command
-list, stop and start for listing, starting or stopping ec2 ec2_instances
+list, stop and start instances for listing, starting or stopping ec2_instances
+list volumes for listing volumes across all ec2_instances
+list, create_snapshot for listing and creating snapshots for volumes
+##project parameter
 project parameter is optional. It represents tag 'project' linked with instances. If not provided all the instances are included in command

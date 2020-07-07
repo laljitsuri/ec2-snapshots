@@ -15,8 +15,20 @@ def filter_instances(project):
     return instances
 
 @click.group()
+def cli():
+    "CLI for managing aws ec2 automation"
+
+@cli.group('instances')
 def ec2_instances():
     "Commands for ec2 instances automation"
+
+@cli.group('volumes')
+def ec2_volumes():
+    "Commands for ec2 volumes automation"
+
+@cli.group('snapshots')
+def ec2_snapshots():
+    "Commands for ec2 snapshots automation"
 
 @ec2_instances.command('list')
 @click.option('--project',default=None,
@@ -61,6 +73,60 @@ def start_instances(project):
         print("Starting instance {0}....".format(i.id))
         i.start()
 
+@ec2_volumes.command('list')
+@click.option('--project',default=None,
+                help="Only volumes for project with tag project:<project_name>")
+def list_volumes(project):
+    "List EC2 volumes"
+
+    instances=filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            print(' ,'.join((
+            v.id,
+            i.id,
+            v.state,
+            str(v.size)+'GiB',
+            v.encrypted and 'Encrypted' or 'Not Encrypted'
+            )))
+
+
+@ec2_snapshots.command('list')
+@click.option('--project',default=None,
+                help="Only snapshots for project with tag project:<project_name>")
+def list_snapshots(project):
+    "List EC2 snapshots"
+
+    instances=filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            for s in v.snapshots.all():
+                print(' ,'.join((
+                s.id,
+                v.id,
+                i.id,
+                s.state,
+                s.progress,
+                s.start_time.strftime("%c")
+                )))
+
+@ec2_snapshots.command('create_snapshot')
+@click.option('--project',default=None,
+                help="Create snapshots for project with tag project:<project_name>")
+def create_snapshot(project):
+    "Create EC2 snapshots"
+
+    instances=filter_instances(project)
+
+    for i in instances:
+        i.stop()
+        for v in i.volumes.all():
+            print("Creating snapshot for volume {0}".format(v.id))
+            v.create_snapshot(Description="Created by snapshot automation")
+
+    return
 
 if __name__=='__main__':
-    ec2_instances()
+    cli()
