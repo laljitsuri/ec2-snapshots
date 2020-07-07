@@ -12,4 +12,8 @@ shotty uses the config file created by AWS cli using following command:
 
 ## Running
 
-`python3 shotty/shotty.py`
+`python3 shotty/shotty.py <command> <--project=project_name>`
+
+##Command
+list, stop and start for listing, starting or stopping ec2 ec2_instances
+project parameter is optional. It represents tag 'project' linked with instances. If not provided all the instances are included in command
