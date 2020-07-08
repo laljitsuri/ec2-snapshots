@@ -99,10 +99,12 @@ def list_snapshots(project):
     "List EC2 snapshots"
 
     instances=filter_instances(project)
+    snapshots_exist=False
 
     for i in instances:
         for v in i.volumes.all():
             for s in v.snapshots.all():
+                snapshots_exist=True
                 print(' ,'.join((
                 s.id,
                 v.id,
@@ -111,6 +113,8 @@ def list_snapshots(project):
                 s.progress,
                 s.start_time.strftime("%c")
                 )))
+    if not snapshots_exist:
+        print("No snapshots found")
 
 @ec2_snapshots.command('create_snapshot')
 @click.option('--project',default=None,
@@ -121,11 +125,17 @@ def create_snapshot(project):
     instances=filter_instances(project)
 
     for i in instances:
+        print("Stopping instance {0} for volume snapshotting".format(i.id))
         i.stop()
+        i.wait_until_stopped()
         for v in i.volumes.all():
             print("Creating snapshot for volume {0}".format(v.id))
             v.create_snapshot(Description="Created by snapshot automation")
+        print("Starting instance {0} after taking volume snapshots".format(i.id))
+        i.start()
+        i.wait_until_running
 
+    print("Job Done! Snapshots created")
     return
 
 if __name__=='__main__':
