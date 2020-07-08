@@ -104,7 +104,9 @@ def list_volumes(project):
 @ec2_snapshots.command('list')
 @click.option('--project',default=None,
                 help="Only snapshots for project with tag project:<project_name>")
-def list_snapshots(project):
+@click.option('--all','list_all',default=False,is_flag=True,
+                help="List all snapshots, not just recent ones")
+def list_snapshots(project,list_all):
     "List EC2 snapshots"
 
     instances=filter_instances(project)
@@ -122,6 +124,7 @@ def list_snapshots(project):
                 s.progress,
                 s.start_time.strftime("%c")
                 )))
+                if s.state=='completed' and not list_all:break
     if not snapshots_exist:
         print("No snapshots found")
 
