@@ -15,6 +15,11 @@ def filter_instances(project):
 
     return instances
 
+def has_pending_snapshots(volume):
+    snapshots=list(volume.snapshots.all())
+    return snapshots and snapshots[0].state=='pending'
+
+
 @click.group()
 def cli():
     "CLI for managing aws ec2 automation"
@@ -141,6 +146,9 @@ def create_snapshot(project):
         i.stop()
         i.wait_until_stopped()
         for v in i.volumes.all():
+            if has_pending_snapshots(v):
+                print("Skipping snapshotting {0} since snapshot is pending".format(v.id))
+                continue
             print("Creating snapshot for volume {0}".format(v.id))
             v.create_snapshot(Description="Created by snapshot automation")
         print("Starting instance {0} after taking volume snapshots".format(i.id))
